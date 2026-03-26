@@ -89,13 +89,7 @@ setInterval(() => {
 
 // Serve static files with security
 app.use("/*", serveStatic({ 
-  root: "./src/public",
-  // Security: Don't serve hidden files
-  rewriteRequestPath: (path) => {
-    // Block access to hidden files and directories
-    if (path.includes("/.")) return null;
-    return path;
-  }
+  root: "./src/public"
 }));
 
 // Main route

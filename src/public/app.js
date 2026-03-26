@@ -8,6 +8,11 @@ let currentZoom = 1;
 let minZoom = 1;
 let maxZoom = 1;
 
+// QR detection stabilization
+let qrDetectionTimer = null;
+let qrLostTimer = null;
+let isQrStable = false;
+
 // Generate a random room ID
 function generateRoomId() {
   return 'room_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
@@ -201,6 +206,25 @@ function scanQRCode() {
       if (code) {
         console.log('QR detected!', code.data.substring(0, 30));
         
+        // Cancel any pending "lost" timer
+        if (qrLostTimer) {
+          clearTimeout(qrLostTimer);
+          qrLostTimer = null;
+        }
+        
+        // Start detection timer if not already stable
+        if (!isQrStable && !qrDetectionTimer) {
+          qrDetectionTimer = setTimeout(() => {
+            console.log('QR detection stabilized - applying morph effect');
+            const videoContainer = document.getElementById('videoContainer');
+            if (videoContainer) {
+              videoContainer.classList.add('video-morphed');
+            }
+            isQrStable = true;
+            qrDetectionTimer = null;
+          }, 300); // Wait 300ms for stable detection
+        }
+        
         // Draw detection box
         const location = code.location;
         overlayCtx.beginPath();
@@ -242,6 +266,32 @@ function scanQRCode() {
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'qr', data: code.data }));
         }
+      } else {
+        // Cancel any pending detection timer
+        if (qrDetectionTimer) {
+          clearTimeout(qrDetectionTimer);
+          qrDetectionTimer = null;
+        }
+        
+        // Start "lost" timer if currently stable
+        if (isQrStable && !qrLostTimer) {
+          qrLostTimer = setTimeout(() => {
+            console.log('QR lost - starting outro animation');
+            const videoContainer = document.getElementById('videoContainer');
+            if (videoContainer) {
+              // Remove intro class and add outro class
+              videoContainer.classList.remove('video-morphed');
+              videoContainer.classList.add('video-morphing-out');
+              
+              // Clean up after outro animation
+              setTimeout(() => {
+                videoContainer.classList.remove('video-morphing-out');
+              }, 800); // Match outro animation duration
+            }
+            isQrStable = false;
+            qrLostTimer = null;
+          }, 500); // Wait 500ms before removing effect
+        }
       }
     }
   }, 100); // Scan every 100ms
@@ -252,6 +302,26 @@ function stopScanner() {
     clearInterval(scanningInterval);
     scanningInterval = null;
   }
+  
+  // Clean up QR detection timers
+  if (qrDetectionTimer) {
+    clearTimeout(qrDetectionTimer);
+    qrDetectionTimer = null;
+  }
+  if (qrLostTimer) {
+    clearTimeout(qrLostTimer);
+    qrLostTimer = null;
+  }
+  
+  // Reset QR detection state
+  isQrStable = false;
+  
+  // Remove morphing effect
+  const videoContainer = document.getElementById('videoContainer');
+  if (videoContainer) {
+    videoContainer.classList.remove('video-morphed', 'video-morphing-out');
+  }
+  
   if (videoStream) {
     videoStream.getTracks().forEach(track => track.stop());
     videoStream = null;

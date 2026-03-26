@@ -8,10 +8,16 @@
   <link rel="alternate icon" href="/favicon.svg">
   <link rel="mask-icon" href="/favicon.svg" color="#4c4f69">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cereal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
+          fontFamily: {
+            'airbnb': ['Cereal', 'Circular', '-apple-system', 'BlinkMacSystemFont', 'Roboto', 'Helvetica Neue', 'sans-serif'],
+          },
           colors: {
             ctp: {
               base: '#eff1f5',
@@ -36,8 +42,121 @@
   </script>
   <style>
     body {
-      background: linear-gradient(135deg, #e6e9ef 0%, #dce0e8 100%);
+      background: #ffffff;
+      font-family: 'Cereal', 'Circular', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+      overflow: hidden;
+      position: relative;
     }
+    
+    /* Background ripple animation */
+    .ripple-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(45deg, rgba(59, 130, 246, 0.03), rgba(139, 92, 246, 0.03), rgba(236, 72, 153, 0.03));
+      animation: ripple-expand 6s infinite ease-out;
+    }
+    
+    .ripple:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      top: 50%;
+      left: 50%;
+      margin-top: -150px;
+      margin-left: -150px;
+      animation-delay: -2s;
+    }
+    
+    .ripple:nth-child(2) {
+      width: 600px;
+      height: 600px;
+      top: 50%;
+      left: 50%;
+      margin-top: -300px;
+      margin-left: -300px;
+      animation-delay: -4s;
+    }
+    
+    .ripple:nth-child(3) {
+      width: 900px;
+      height: 900px;
+      top: 50%;
+      left: 50%;
+      margin-top: -450px;
+      margin-left: -450px;
+      animation-delay: -1s;
+    }
+    
+    .ripple:nth-child(4) {
+      width: 1200px;
+      height: 1200px;
+      top: 50%;
+      left: 50%;
+      margin-top: -600px;
+      margin-left: -600px;
+      animation-delay: -3s;
+    }
+    
+    @keyframes ripple-expand {
+      0% {
+        transform: scale(0);
+        opacity: 0.8;
+      }
+      50% {
+        opacity: 0.3;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 0;
+      }
+    }
+    
+    /* Vibrant title styling */
+    .vibrant-title {
+      background: linear-gradient(45deg, #3b82f6, #ef4444, #f97316, #8b5cf6);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient-shift 8s ease-in-out infinite;
+      position: relative;
+    }
+    
+    @keyframes gradient-shift {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    
+    /* Breathing effect for title */
+    .title-container {
+      animation: breathe 4s ease-in-out infinite;
+    }
+    
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.02);
+      }
+    }
+    
     .step {
       display: none;
     }
@@ -71,28 +190,215 @@
       image-rendering: crisp-edges;
       image-rendering: pixelated;
     }
+    
+    /* Video morphing effect */
+    .video-container {
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px; /* Initial state: rounded-2xl */
+    }
+    
+    /* INTRO ANIMATION - Ne pas toucher, fonctionne parfaitement */
+    .video-morphed {
+      border-radius: 50%;
+      transform: scale(1);
+    }
+    
+    .video-morphed video {
+      border-radius: 50%;
+      transition: border-radius 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .video-morphed canvas {
+      border-radius: 50%;
+      transition: border-radius 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .video-morphed::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 0 rgba(64, 160, 43, 0);
+      animation: qr-glow-intro 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+                 qr-detected-pulse 2s ease-in-out infinite 0.8s;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    /* OUTRO ANIMATION - Séparée et indépendante */
+    .video-morphing-out {
+      animation: morph-circle-to-square 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    .video-morphing-out video {
+      animation: morph-circle-to-square 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    .video-morphing-out canvas {
+      animation: morph-circle-to-square 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    .video-morphing-out::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      animation: qr-glow-outro 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    /* Keyframes pour INTRO */
+    @keyframes qr-glow-intro {
+      0% {
+        box-shadow: 0 0 0 rgba(64, 160, 43, 0);
+      }
+      100% {
+        box-shadow: 0 0 40px rgba(64, 160, 43, 0.4), 0 0 80px rgba(64, 160, 43, 0.2);
+      }
+    }
+    
+    /* Keyframes pour OUTRO */
+    @keyframes morph-circle-to-square {
+      0% {
+        border-radius: 50%;
+      }
+      100% {
+        border-radius: 16px;
+      }
+    }
+    
+    @keyframes qr-glow-outro {
+      0% {
+        border-radius: 50%;
+        box-shadow: 0 0 40px rgba(64, 160, 43, 0.4), 0 0 80px rgba(64, 160, 43, 0.2);
+      }
+      100% {
+        border-radius: 16px;
+        box-shadow: 0 0 0 rgba(64, 160, 43, 0);
+      }
+    }
+    
+    /* Pulsation continue */
+    @keyframes qr-detected-pulse {
+      0%, 100% {
+        box-shadow: 0 0 40px rgba(64, 160, 43, 0.4), 0 0 80px rgba(64, 160, 43, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 60px rgba(64, 160, 43, 0.6), 0 0 120px rgba(64, 160, 43, 0.4);
+      }
+    }
+    
+    @keyframes qr-detected-pulse {
+      0%, 100% {
+        box-shadow: 0 0 40px rgba(64, 160, 43, 0.4), 0 0 80px rgba(64, 160, 43, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 60px rgba(64, 160, 43, 0.6), 0 0 120px rgba(64, 160, 43, 0.4);
+      }
+    }
+    
+    /* Button hover effects */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+    
+    /* Scan line effect for scanner button */
+    .btn-scanner {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-scanner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(to bottom, 
+        transparent 0%, 
+        #10b981 20%, 
+        #34d399 50%, 
+        #10b981 80%, 
+        transparent 100%
+      );
+      box-shadow: 0 0 15px #10b981, 0 0 25px #10b981;
+      animation: none;
+      transition: left 0.6s ease-in-out;
+    }
+    
+    .btn-scanner:hover::after {
+      left: 100%;
+      animation: scanner-glow 0.6s ease-in-out;
+    }
+    
+    @keyframes scanner-glow {
+      0% {
+        box-shadow: 0 0 5px #10b981;
+        opacity: 0.8;
+      }
+      50% {
+        box-shadow: 0 0 20px #10b981, 0 0 30px #34d399;
+        opacity: 1;
+      }
+      100% {
+        box-shadow: 0 0 10px #10b981;
+        opacity: 0.8;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
-  <main class="w-full max-w-md">
-    <!-- Card Container -->
-    <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl shadow-ctp-mantle/20 p-8 animate-fade-in">
+  <main class="w-full max-w-md relative z-10">
+    <!-- Background ripple animation -->
+    <div class="ripple-container">
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+      <div class="ripple"></div>
+    </div>
+    
+    <!-- Container -->
+    <div class="p-8 animate-fade-in">
       <!-- Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold bg-gradient-to-r from-ctp-mauve to-ctp-pink bg-clip-text text-transparent mb-2">
-          🎯 FckSWS
+      <div class="text-center mb-12 title-container">
+        <h1 class="text-8xl font-bold font-airbnb vibrant-title">
+          Fcksws
         </h1>
       </div>
       
       <!-- Step 1: Mode selection -->
       <div id="step1" class="step active">
-        <h2 class="text-xl font-semibold text-ctp-text mb-6 text-center">Choisir un mode</h2>
-        <div class="space-y-3">
-          <button onclick="selectMode('scanner')" class="w-full bg-ctp-text hover:bg-ctp-subtext text-white font-medium py-5 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
+        <div class="space-y-4">
+          <button onclick="selectMode('scanner')" class="btn-scanner w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 text-lg font-airbnb shadow-lg hover:shadow-xl">
             <span class="text-2xl">📷</span>
             <span>Scanner un QR code</span>
           </button>
-          <button onclick="selectMode('receiver')" class="w-full bg-ctp-mantle hover:bg-ctp-crust text-ctp-text font-medium py-5 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 border-2 border-ctp-text/20">
+          <button onclick="selectMode('receiver')" class="w-full bg-white hover:bg-gray-50 text-blue-600 font-medium py-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 text-lg border-2 border-blue-600 font-airbnb shadow-lg hover:shadow-xl">
             <span class="text-2xl">📱</span>
             <span>Recevoir le QR code</span>
           </button>
@@ -149,8 +455,10 @@
           <span class="text-xl">📷</span> Scannez le QR code
         </h2>
         <div class="relative mb-4">
-          <video id="video" autoplay playsinline class="w-full rounded-2xl shadow-lg" style="display: none;"></video>
-          <canvas id="overlayCanvas" class="absolute top-0 left-0 w-full h-full rounded-2xl pointer-events-none" style="display: none;"></canvas>
+          <div id="videoContainer" class="video-container rounded-2xl">
+            <video id="video" autoplay playsinline class="w-full rounded-2xl shadow-lg" style="display: none;"></video>
+            <canvas id="overlayCanvas" class="absolute top-0 left-0 w-full h-full rounded-2xl pointer-events-none" style="display: none;"></canvas>
+          </div>
           
           <!-- Zoom controls -->
           <div id="zoomControls" class="absolute bottom-4 right-4 flex gap-2" style="display: none;">
