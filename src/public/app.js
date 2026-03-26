@@ -377,14 +377,17 @@ function displayQRCode(data) {
     // Clear previous QR code
     qrDisplay.innerHTML = '<div id="qrcode"></div>';
     
-    // Generate new QR code
-    new QRCode(document.getElementById('qrcode'), {
-      text: data,
+    // Generate new QR code with minimal margins
+    QRCode.toCanvas(document.getElementById('qrcode'), data, {
       width: 256,
-      height: 256,
-      colorDark: '#4c4f69',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
+      margin: 1, // Minimal margin - approximately 5 pixels for a 256px QR code
+      color: {
+        dark: '#4c4f69',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'H'
+    }, function (error) {
+      if (error) throw error;
     });
     
     qrDisplay.classList.remove('hidden');
