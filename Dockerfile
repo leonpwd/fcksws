@@ -1,32 +1,31 @@
-# Ultra-minimal Docker with proper ARM64 support (~25MB)
+# Ultra-minimal Alpine with just Bun dependencies (~25MB)
 FROM oven/bun:1.1-alpine AS builder
 
 WORKDIR /app
-
-# Copy package files
 COPY package.json bun.lockb* ./
 COPY src ./src
 COPY tsconfig.json ./
 
-# Install production dependencies
-RUN bun install --frozen-lockfile --production
+# Install and build
+RUN bun install --frozen-lockfile --production && \
+    bun build src/server.ts --outdir dist --target bun --minify --sourcemap=none
 
-# Build for bun runtime (NOT standalone binary)
-RUN bun build src/server.ts --outdir dist --target bun --minify --sourcemap=none
+# Minimal Alpine with only Bun runtime dependencies
+FROM alpine:3.19
 
-# Minimal production with distroless + bun runtime
-FROM gcr.io/distroless/base-debian12:nonroot
+# Install minimal dependencies for Bun binary
+RUN apk add --no-cache ca-certificates libgcc libstdc++ && \
+    adduser -D bunuser
 
 WORKDIR /app
+RUN chown bunuser:bunuser /app
 
-# Copy bun binary from builder
+# Copy Bun binary and app
 COPY --from=builder /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=builder --chown=bunuser:bunuser /app/dist ./dist
+COPY --from=builder --chown=bunuser:bunuser /app/src/public ./src/public
 
-# Copy built app
-COPY --from=builder --chown=nonroot:nonroot /app/dist ./dist
-COPY --from=builder --chown=nonroot:nonroot /app/src/public ./src/public
-
+USER bunuser
 EXPOSE 3000
 
-# Use bun runtime instead of standalone binary
 CMD ["/usr/local/bin/bun", "run", "dist/server.js"]
