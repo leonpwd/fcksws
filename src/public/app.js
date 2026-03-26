@@ -164,16 +164,18 @@ async function startScanner() {
     
     // Start scanning
     video.addEventListener('loadedmetadata', () => {
+      // Set canvas to video's natural dimensions for proper QR scanning
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      // Match overlay canvas to video actual dimensions
-      overlayCanvas.width = video.videoWidth;
-      overlayCanvas.height = video.videoHeight;
+      // Set overlay canvas to match the displayed size (350x350)
+      overlayCanvas.width = 350;
+      overlayCanvas.height = 350;
       overlayCanvas.style.display = 'block';
       
-      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-      console.log('Overlay canvas ready');
+      console.log('Video natural dimensions:', video.videoWidth, 'x', video.videoHeight);
+      console.log('Display dimensions: 350x350');
+      console.log('Overlay canvas set to display size');
       
       scanQRCode();
     });
@@ -225,32 +227,76 @@ function scanQRCode() {
           }, 300); // Wait 300ms for stable detection
         }
         
-        // Draw detection box
+        // Draw detection box with coordinate transformation accounting for object-fit: cover
         const location = code.location;
+        const video = document.getElementById('video');
+        
+        // Calculate the actual display scaling considering object-fit: cover
+        const videoAspect = video.videoWidth / video.videoHeight;
+        const containerAspect = 1; // 350x350 is square (1:1)
+        
+        let scaleX, scaleY, offsetX = 0, offsetY = 0;
+        
+        if (videoAspect > containerAspect) {
+          // Video is wider than container - video height fits, width is cropped
+          scaleY = 350 / video.videoHeight;
+          scaleX = scaleY; // Same scale to maintain aspect ratio
+          const scaledVideoWidth = video.videoWidth * scaleX;
+          offsetX = (scaledVideoWidth - 350) / 2; // Crop offset
+        } else {
+          // Video is taller than container - video width fits, height is cropped  
+          scaleX = 350 / video.videoWidth;
+          scaleY = scaleX; // Same scale to maintain aspect ratio
+          const scaledVideoHeight = video.videoHeight * scaleY;
+          offsetY = (scaledVideoHeight - 350) / 2; // Crop offset
+        }
+        
+        // Transform coordinates accounting for crop offset
+        const transformedCorners = {
+          topLeftCorner: {
+            x: (location.topLeftCorner.x * scaleX) - offsetX,
+            y: (location.topLeftCorner.y * scaleY) - offsetY
+          },
+          topRightCorner: {
+            x: (location.topRightCorner.x * scaleX) - offsetX,
+            y: (location.topRightCorner.y * scaleY) - offsetY
+          },
+          bottomLeftCorner: {
+            x: (location.bottomLeftCorner.x * scaleX) - offsetX,
+            y: (location.bottomLeftCorner.y * scaleY) - offsetY
+          },
+          bottomRightCorner: {
+            x: (location.bottomRightCorner.x * scaleX) - offsetX,
+            y: (location.bottomRightCorner.y * scaleY) - offsetY
+          }
+        };
+        
+        // Draw detection box with transformed coordinates
         overlayCtx.beginPath();
-        overlayCtx.moveTo(location.topLeftCorner.x, location.topLeftCorner.y);
-        overlayCtx.lineTo(location.topRightCorner.x, location.topRightCorner.y);
-        overlayCtx.lineTo(location.bottomRightCorner.x, location.bottomRightCorner.y);
-        overlayCtx.lineTo(location.bottomLeftCorner.x, location.bottomLeftCorner.y);
-        overlayCtx.lineTo(location.topLeftCorner.x, location.topLeftCorner.y);
+        overlayCtx.moveTo(transformedCorners.topLeftCorner.x, transformedCorners.topLeftCorner.y);
+        overlayCtx.lineTo(transformedCorners.topRightCorner.x, transformedCorners.topRightCorner.y);
+        overlayCtx.lineTo(transformedCorners.bottomRightCorner.x, transformedCorners.bottomRightCorner.y);
+        overlayCtx.lineTo(transformedCorners.bottomLeftCorner.x, transformedCorners.bottomLeftCorner.y);
+        overlayCtx.lineTo(transformedCorners.topLeftCorner.x, transformedCorners.topLeftCorner.y);
         overlayCtx.lineWidth = 4;
         overlayCtx.strokeStyle = '#40a02b';
         overlayCtx.stroke();
         
-        // Draw corner dots
-        [location.topLeftCorner, location.topRightCorner, location.bottomLeftCorner, location.bottomRightCorner].forEach(corner => {
+        // Draw corner dots with transformed coordinates
+        [transformedCorners.topLeftCorner, transformedCorners.topRightCorner, 
+         transformedCorners.bottomLeftCorner, transformedCorners.bottomRightCorner].forEach(corner => {
           overlayCtx.beginPath();
           overlayCtx.arc(corner.x, corner.y, 8, 0, 2 * Math.PI);
           overlayCtx.fillStyle = '#40a02b';
           overlayCtx.fill();
         });
         
-        // Draw text background
+        // Draw text background with transformed coordinates
         const text = code.data.length > 40 ? code.data.substring(0, 40) + '...' : code.data;
         overlayCtx.font = 'bold 16px system-ui';
         const textMetrics = overlayCtx.measureText(text);
-        const textX = location.bottomLeftCorner.x;
-        const textY = location.bottomLeftCorner.y + 30;
+        const textX = transformedCorners.bottomLeftCorner.x;
+        const textY = transformedCorners.bottomLeftCorner.y + 30;
         
         overlayCtx.fillStyle = 'rgba(64, 160, 43, 0.9)';
         overlayCtx.fillRect(textX - 5, textY - 20, textMetrics.width + 10, 28);
@@ -448,16 +494,13 @@ function displayQRCode(data) {
     qrDisplay.innerHTML = '<div id="qrcode"></div>';
     
     // Generate new QR code with minimal margins
-    QRCode.toCanvas(document.getElementById('qrcode'), data, {
+    new QRCode(document.getElementById('qrcode'), {
+      text: data,
       width: 256,
-      margin: 1, // Minimal margin - approximately 5 pixels for a 256px QR code
-      color: {
-        dark: '#4c4f69',
-        light: '#ffffff'
-      },
-      errorCorrectionLevel: 'H'
-    }, function (error) {
-      if (error) throw error;
+      height: 256,
+      colorDark: '#4c4f69',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
     });
     
     qrDisplay.classList.remove('hidden');

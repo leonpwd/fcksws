@@ -197,21 +197,40 @@
       position: relative;
       overflow: hidden;
       border-radius: 16px; /* Initial state: rounded-2xl */
+      width: 350px; /* Fixed width */
+      height: 350px; /* Fixed height - perfect square */
+      margin: 0 auto;
+      background: #000; /* Black background for video */
+    }
+    
+    .video-container video {
+      width: 350px !important;
+      height: 350px !important;
+      object-fit: cover; /* Crop video to maintain aspect ratio */
+      display: block;
+    }
+    
+    .video-container canvas {
+      width: 350px !important;
+      height: 350px !important;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
     
     /* INTRO ANIMATION - Ne pas toucher, fonctionne parfaitement */
     .video-morphed {
-      border-radius: 50%;
+      border-radius: 175px; /* 50% of 350px */
       transform: scale(1);
     }
     
     .video-morphed video {
-      border-radius: 50%;
+      border-radius: 175px; /* 50% of 350px */
       transition: border-radius 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .video-morphed canvas {
-      border-radius: 50%;
+      border-radius: 175px; /* 50% of 350px */
       transition: border-radius 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
@@ -268,7 +287,7 @@
     /* Keyframes pour OUTRO */
     @keyframes morph-circle-to-square {
       0% {
-        border-radius: 50%;
+        border-radius: 175px;
       }
       100% {
         border-radius: 16px;
@@ -277,7 +296,7 @@
     
     @keyframes qr-glow-outro {
       0% {
-        border-radius: 50%;
+        border-radius: 175px;
         box-shadow: 0 0 40px rgba(64, 160, 43, 0.4), 0 0 80px rgba(64, 160, 43, 0.2);
       }
       100% {
@@ -455,9 +474,9 @@
           <span class="text-xl">📷</span> Scannez le QR code
         </h2>
         <div class="relative mb-4">
-          <div id="videoContainer" class="video-container rounded-2xl">
-            <video id="video" autoplay playsinline class="w-full rounded-2xl shadow-lg" style="display: none;"></video>
-            <canvas id="overlayCanvas" class="absolute top-0 left-0 w-full h-full rounded-2xl pointer-events-none" style="display: none;"></canvas>
+          <div id="videoContainer" class="video-container">
+            <video id="video" autoplay playsinline style="display: none;"></video>
+            <canvas id="overlayCanvas" class="pointer-events-none" style="display: none;"></canvas>
           </div>
           
           <!-- Zoom controls -->
@@ -504,7 +523,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>
