@@ -14,11 +14,14 @@ RUN bun install --frozen-lockfile --production
 # Build single optimized binary
 RUN bun build src/server.ts --outfile server --target bun --minify --sourcemap=none
 
+# IMPORTANT: Set executable permissions in builder stage
+RUN chmod +x /app/server
+
 # Production image: scratch (no OS, just binary + static files)
 FROM scratch
 
-# Copy only essential files
-COPY --from=builder /app/server /server
+# Copy with explicit permissions
+COPY --from=builder --chmod=755 /app/server /server
 COPY --from=builder /app/src/public /public
 
 EXPOSE 3000
