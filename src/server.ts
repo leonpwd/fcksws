@@ -1,54 +1,42 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
-import { cors } from "hono/cors";
-import { logger } from "hono/logger";
-import { secureHeaders } from "hono/secure-headers";
 
 const app = new Hono();
 
-// Security: Add comprehensive security headers
-app.use("*", secureHeaders({
-  contentSecurityPolicy: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
-    styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
-    mediaSrc: ["'self'", "blob:"],
-    connectSrc: ["'self'", "ws:", "wss:"],
-    imgSrc: ["'self'", "data:", "blob:"],
-  },
-  crossOriginEmbedderPolicy: false, // Required for camera access
-}));
+// Simple CORS headers
+app.use("*", async (c, next) => {
+  c.header("Access-Control-Allow-Origin", "*");
+  c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  c.header("Access-Control-Allow-Headers", "Content-Type");
+  if (c.req.method === "OPTIONS") {
+    return c.text("OK");
+  }
+  await next();
+});
 
-// Security: CORS configuration
-app.use("/api/*", cors({
-  origin: process.env.NODE_ENV === "production" 
-    ? ["https://yourdomain.com"] // Replace with your actual domain
-    : true,
-  credentials: false,
-}));
+// Security headers
+app.use("*", async (c, next) => {
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
+  c.header("X-XSS-Protection", "1; mode=block");
+  await next();
+});
 
-// Security: Request logging
-app.use("*", logger());
-
-// Security: Rate limiting store (simple in-memory)
+// Simple rate limiting store
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 100;
-
-// Security: Rate limiting middleware
+// Simple rate limiting
 app.use("/api/*", async (c, next) => {
   const clientIP = c.req.header("x-forwarded-for") || 
                    c.req.header("x-real-ip") || 
                    "unknown";
   
   const now = Date.now();
-  const windowStart = now - RATE_LIMIT_WINDOW;
+  const RATE_LIMIT_WINDOW = 60000; // 1 minute
+  const RATE_LIMIT_MAX_REQUESTS = 100;
   
   // Clean old entries
   for (const [ip, data] of rateLimitStore.entries()) {
-    if (data.resetTime < windowStart) {
+    if (data.resetTime < now) {
       rateLimitStore.delete(ip);
     }
   }
@@ -133,30 +121,6 @@ app.get("/api/rooms", (c) => {
   }
 });
 
-// Security: SSL certificate handling with validation
-let tlsOptions = undefined;
-try {
-  const certPath = join(process.cwd(), "certs/cert.pem");
-  const keyPath = join(process.cwd(), "certs/key.pem");
-  
-  if (existsSync(certPath) && existsSync(keyPath)) {
-    const cert = readFileSync(certPath);
-    const key = readFileSync(keyPath);
-    
-    // Security: Basic certificate validation
-    if (cert.length > 0 && key.length > 0) {
-      tlsOptions = { cert, key };
-      console.log("✅ SSL certificates found - HTTPS enabled");
-    } else {
-      console.log("⚠️  Invalid SSL certificates - Running HTTP only");
-    }
-  } else {
-    console.log("⚠️  No SSL certificates found - Running HTTP only");
-  }
-} catch (err) {
-  console.log("⚠️  SSL certificate error - Running HTTP only");
-}
-
 // Security: WebSocket connection limits per IP
 const wsConnectionLimits = new Map<string, number>();
 const MAX_WS_CONNECTIONS_PER_IP = 10;
@@ -164,7 +128,6 @@ const MAX_WS_CONNECTIONS_PER_IP = 10;
 // WebSocket upgrade with comprehensive security
 const server = Bun.serve({
   port: Number(process.env.PORT) || 3000,
-  tls: tlsOptions,
   fetch(req, server) {
     const url = new URL(req.url);
     
@@ -293,6 +256,5 @@ const server = Bun.serve({
   },
 });
 
-const protocol = tlsOptions ? 'https' : 'http';
-console.log(`🚀 Server running at ${protocol}://localhost:${server.port}`);
+console.log(`🚀 Server running at http://localhost:${server.port}`);
 console.log(`🔒 Security: Rate limiting, input validation, and headers enabled`);

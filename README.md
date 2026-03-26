@@ -22,6 +22,8 @@ bun install && bun run dev
 - Dynamic rooms - Scanner creates room, others join
 - Minimalistic - 101kB Docker image
 
+> Caution : The app needs to be set up behind a reverse proxy with SSL, otherwise the browsers won't allow the camera to open.
+
 <p align="center">
 	<img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/footers/gray0_ctp_on_line.svg?sanitize=true" />
 </p>
