@@ -1,4 +1,4 @@
-# Ultra-minimal Docker image (101kB) optimized for nginx reverse proxy
+# Ultra-minimal Docker image with ARM64 support (~15MB)
 FROM oven/bun:1.1-alpine AS builder
 
 WORKDIR /app
@@ -8,21 +8,21 @@ COPY package.json bun.lockb* ./
 COPY src ./src
 COPY tsconfig.json ./
 
-# Install production dependencies only
+# Install production dependencies
 RUN bun install --frozen-lockfile --production
 
-# Build single optimized binary
-RUN bun build src/server.ts --outfile server --target bun --minify --sourcemap=none
+# Build optimized binary 
+RUN bun build src/server.ts --outfile server --target bun --minify --sourcemap=none && \
+    chmod +x /app/server
 
-# IMPORTANT: Set executable permissions in builder stage
-RUN chmod +x /app/server
+# Ultra-minimal production with distroless (C runtime only)
+FROM gcr.io/distroless/cc-debian12:nonroot
 
-# Production image: scratch (no OS, just binary + static files)
-FROM scratch
+WORKDIR /app
 
-# Copy with explicit permissions
-COPY --from=builder --chmod=755 /app/server /server
-COPY --from=builder /app/src/public /public
+# Copy binary and static files
+COPY --from=builder --chown=nonroot:nonroot /app/server /app/server  
+COPY --from=builder --chown=nonroot:nonroot /app/src/public /app/public
 
 EXPOSE 3000
-CMD ["/server"]
+CMD ["/app/server"]
