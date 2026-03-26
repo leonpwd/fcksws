@@ -1,0 +1,14 @@
+services:
+  fcksws:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    restart: unless-stopped
+    # Optionnel: limiter les ressources
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M

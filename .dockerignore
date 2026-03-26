@@ -1,0 +1,37 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies (will be installed)
+node_modules
+bun.lockb
+
+# Build outputs (will be generated)
+dist
+build
+
+# Development files
+.env*
+!.env.example
+*.log
+.vscode
+.idea
+.DS_Store
+
+# SSL certs (development only)
+certs/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation & tests
+README.md
+test.sh
+*.md
+
+# Cache
+.cache
+.npm
+.parcel-cache

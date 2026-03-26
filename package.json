@@ -1,0 +1,36 @@
+{
+  "name": "fcksws",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Ultra-lightweight QR code sharing web app with security hardening",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "bun run --hot src/server.ts",
+    "build": "bun build src/server.ts --outdir ./dist --target bun --minify",
+    "start": "bun run dist/server.js",
+    "docker:build": "docker build -t fcksws .",
+    "docker:run": "docker run -p 3000:3000 fcksws",
+    "security:audit": "bun audit",
+    "clean": "rm -rf dist node_modules"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "qr-code",
+    "websockets", 
+    "real-time",
+    "lightweight",
+    "bun",
+    "security"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
