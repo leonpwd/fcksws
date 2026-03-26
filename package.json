@@ -1,8 +1,8 @@
 {
   "name": "fcksws",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
-  "description": "Ultra-lightweight QR code sharing web app with security hardening",
+  "description": "Lightweight QR code sharing web app",
   "main": "dist/server.js",
   "scripts": {
     "dev": "bun run --hot src/server.ts",
@@ -31,6 +31,6 @@
     "bun",
     "security"
   ],
-  "author": "Your Name",
+  "author": "leonpwd",
   "license": "MIT"
 }
