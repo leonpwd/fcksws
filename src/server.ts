@@ -122,6 +122,8 @@ const MAX_WS_CONNECTIONS_PER_IP = 10;
 // WebSocket upgrade with comprehensive security
 const server = Bun.serve({
   port: Number(process.env.PORT) || 3000,
+  // Listen on all interfaces by default (needed in a container); the NixOS module sets HOST=127.0.0.1.
+  hostname: process.env.HOST || "0.0.0.0",
   fetch(req, server) {
     const url = new URL(req.url);
     

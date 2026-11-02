@@ -48,6 +48,11 @@
               default = 3000;
               description = "Port to listen on";
             };
+            host = lib.mkOption {
+              type = lib.types.str;
+              default = "127.0.0.1";
+              description = "Address to listen on (use 0.0.0.0 to expose the service on every interface)";
+            };
             package = lib.mkOption {
               type = lib.types.package;
               default = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -62,6 +67,7 @@
               wantedBy = [ "multi-user.target" ];
               environment = {
                 PORT = toString cfg.port;
+                HOST = cfg.host;
                 NODE_ENV = "production";
               };
               serviceConfig = {
@@ -69,6 +75,29 @@
                 Restart = "always";
                 RestartSec = "5s";
                 DynamicUser = true;
+
+                # Sandboxing. MemoryDenyWriteExecute and SystemCallFilter are left out on purpose:
+                # Bun's JIT needs writable+executable memory and may use io_uring.
+                NoNewPrivileges = true;
+                CapabilityBoundingSet = "";
+                AmbientCapabilities = "";
+                PrivateTmp = true;
+                PrivateDevices = true;
+                ProtectSystem = "strict";
+                ProtectHome = true;
+                ProtectKernelTunables = true;
+                ProtectKernelModules = true;
+                ProtectKernelLogs = true;
+                ProtectControlGroups = true;
+                ProtectClock = true;
+                ProtectHostname = true;
+                RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+                RestrictNamespaces = true;
+                RestrictRealtime = true;
+                RestrictSUIDSGID = true;
+                LockPersonality = true;
+                SystemCallArchitectures = "native";
+                UMask = "0077";
               };
             };
           };
